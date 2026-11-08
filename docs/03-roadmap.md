@@ -6,9 +6,9 @@ Each milestone ends with something Shmuly can run and judge. Don't start a miles
 
 - Vite + React + TS strict, pnpm, ESLint + Prettier, Vitest, Playwright, GitHub Actions (lint, typecheck, test).
 - `scripts/copy-pyodide.ts`; Pyodide bundled into the app from `/pyodide/`.
-- Tauri 2 desktop shell; CI builds installers for Windows, macOS and Linux and runs the desktop smoke test on each.
+- Tauri 2 desktop shell; a manual-only CI workflow that can build Windows, macOS and Linux installers when asked.
 
-**Done when:** `pnpm desktop:dev` opens the app with an empty layout; CI is green; the built app on each OS loads Python from inside itself and prints `2 + 2 = 4` from a worker.
+**Done when:** `pnpm desktop:dev` opens the app with an empty layout; `pnpm check` and `pnpm check:desktop` pass locally; the built app loads Python from inside itself and prints `2 + 2 = 4` from a worker.
 
 ## M1 — Engine core (no 3D, no polish)
 
