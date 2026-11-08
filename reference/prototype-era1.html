@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ground Truth — Era 1 test</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4efe6; --panel:#fffdf8; --ink:#2b2a33; --quiet:#77737f; --line:#e6dfd2;
+  --blue:#3d8bfd; --green:#2fb36d; --red:#e5534b; --amber:#f2a516; --accent:#ff7a45;
+  --code:#1f2030; --codeInk:#e8e6f0;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:Nunito,system-ui,sans-serif}
+button{font-family:inherit;cursor:pointer}
+#app{display:grid;grid-template-rows:auto 1fr;height:100vh}
+header{display:flex;align-items:center;gap:14px;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--panel);flex-wrap:wrap}
+.logo{font-weight:900;font-size:20px;letter-spacing:-.3px}
+.logo small{display:block;font-size:11px;font-weight:700;color:var(--quiet);letter-spacing:.4px;text-transform:uppercase}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
+.chip{background:#f6f1e7;border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:13px;font-weight:700;white-space:nowrap}
+.chip b{font-weight:900}
+.chip.hide{display:none}
+main{display:grid;grid-template-columns:1fr 480px;min-height:0}
+#world{position:relative;min-height:0;overflow:hidden}
+#world canvas{display:block;width:100%;height:100%;touch-action:none}
+.overlay{position:absolute;left:14px;bottom:14px;right:14px;display:flex;gap:10px;align-items:flex-end;pointer-events:none;flex-wrap:wrap}
+.overlay > *{pointer-events:auto}
+.tip{background:rgba(255,253,248,.94);border:1px solid var(--line);border-radius:14px;padding:10px 14px;font-size:14px;font-weight:700;max-width:420px;box-shadow:0 4px 18px rgba(60,40,10,.08)}
+.weather{position:absolute;top:14px;left:14px;background:rgba(255,253,248,.94);border:1px solid var(--line);border-radius:14px;padding:8px 14px;font-weight:800;font-size:14px}
+.btn{border:0;border-radius:12px;padding:10px 16px;font-weight:800;font-size:14px;background:#ece5d8;color:var(--ink);transition:transform .08s,filter .15s}
+.btn:hover{filter:brightness(.97)} .btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--accent);color:#fff;box-shadow:0 3px 0 #d4572a}
+.btn.blue{background:var(--blue);color:#fff;box-shadow:0 3px 0 #2a68c7}
+.btn.green{background:var(--green);color:#fff;box-shadow:0 3px 0 #1f8a51}
+.btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+aside{display:flex;flex-direction:column;border-left:1px solid var(--line);background:var(--panel);min-height:0}
+.ticket{padding:14px 16px;border-bottom:1px solid var(--line)}
+.from{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.avatar{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:900;color:#fff;background:#8d5a97;flex:none}
+.from .who{font-weight:800;font-size:14px}.from .role{font-size:12px;color:var(--quiet);font-weight:700}
+.stage-tag{margin-left:auto;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.5px;color:var(--accent)}
+.req{font-size:14.5px;line-height:1.45;margin:0 0 10px}
+.goal{font-size:13px;font-weight:800;background:#fff4e8;border:1px solid #ffd9bd;border-radius:10px;padding:8px 10px;line-height:1.4}
+.goal .prog{display:block;font-weight:700;color:var(--quiet);margin-top:3px}
+.done{margin-top:10px;background:#e7f8ee;border:1px solid #b5e8cb;border-radius:12px;padding:10px 12px;font-size:14px;font-weight:700;display:none}
+.done.show{display:block}
+.done .row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.tabs{display:flex;gap:4px;padding:8px 12px 0;border-bottom:1px solid var(--line)}
+.tab{border:0;background:none;padding:8px 12px;font-weight:800;font-size:13.5px;color:var(--quiet);border-bottom:3px solid transparent}
+.tab.on{color:var(--ink);border-color:var(--accent)}
+.pane{display:none;flex:1;min-height:0;overflow:auto}
+.pane.on{display:flex;flex-direction:column}
+.editor{flex:1;min-height:180px;display:flex;background:var(--code);font-family:'JetBrains Mono',monospace;font-size:13.5px;line-height:21px;overflow:hidden}
+.gutter{padding:10px 8px 10px 12px;color:#6c6e88;text-align:right;user-select:none;white-space:pre;overflow:hidden;min-width:42px}
+.gutter .err{color:#ff8f87;font-weight:600}
+textarea#code{flex:1;resize:none;border:0;outline:0;background:transparent;color:var(--codeInk);font:inherit;line-height:inherit;padding:10px 12px 10px 4px;white-space:pre;overflow:auto;tab-size:4;caret-color:#ffb38f}
+.controls{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--line);align-items:center;flex-wrap:wrap}
+.speed{display:flex;align-items:center;gap:6px;margin-left:auto;font-size:12px;font-weight:800;color:var(--quiet)}
+#console{height:150px;overflow:auto;border-top:1px solid var(--line);padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.5;background:#fbf8f2}
+#console .l{white-space:pre-wrap}
+#console .err{color:#c0392b}#console .hint{color:#8a5a00}#console .ok{color:#1f8a51}#console .log{color:#555}#console .sys{color:var(--quiet)}
+.doc{padding:14px 16px;font-size:14px;line-height:1.5}
+.doc h3{margin:6px 0 8px;font-size:15px}
+.doc p{margin:0 0 10px}
+.fn{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:8px;background:#fff}
+.fn code{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:13px;color:#7a3bd1}
+.fn span{display:block;font-size:13px;color:var(--quiet);margin-top:2px}
+.fn.new{border-color:#ffc49e;background:#fff8f2}
+.fn.new::after{content:'NEW';font-size:10px;font-weight:900;color:var(--accent);margin-left:6px}
+pre.snip{background:var(--code);color:var(--codeInk);border-radius:10px;padding:10px 12px;font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.5;overflow:auto;margin:4px 0 12px}
+.hintcard{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:10px;background:#fff}
+.hintcard .lvl{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.5px;color:var(--quiet)}
+.hintcard p{margin:4px 0 0}
+.locked{color:var(--quiet);font-style:italic}
+#loading{position:absolute;inset:0;display:grid;place-items:center;background:rgba(244,239,230,.75);font-weight:800;font-size:15px;z-index:5;pointer-events:none}
+.report{display:flex;gap:6px;flex-wrap:wrap}
+@media (max-width:980px){
+  #app{height:auto}
+  main{grid-template-columns:1fr}
+  #world{height:52vh}
+  aside{border-left:0;border-top:1px solid var(--line)}
+  .editor{min-height:260px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="logo">Ground Truth<small>1950 · Era 1 · test build</small></div>
+    <div class="stats">
+      <span class="chip">Day <b id="sDay">1</b></span>
+      <span class="chip">Houses <b id="sHouses">5</b></span>
+      <span class="chip">Happy today <b id="sHappy">0/5</b></span>
+      <span class="chip">Well <b id="sWell">30</b> buckets</span>
+      <span class="chip hide" id="cTank">Tank <b id="sTank">0</b>/60</span>
+      <span class="chip">Ops <b id="sOps">0</b>/<span id="sBudget">300</span></span>
+      <span class="chip">Coins <b id="sCoins">0</b></span>
+      <button class="btn" id="reset" style="padding:5px 12px;font-size:13px">Start over</button>
+    </div>
+  </header>
+  <main>
+    <section id="world">
+      <div id="loading">Waking up the village…</div>
+      <div class="weather" id="weather">Sunny day</div>
+      <div class="overlay">
+        <div class="tip" id="tip">Click a house to carry it one bucket from the well. End the day when you're done.</div>
+        <button class="btn green" id="endDay">End day by hand</button>
+      </div>
+    </section>
+    <aside>
+      <div class="ticket">
+        <div class="from"><div class="avatar" id="av">M</div><div><div class="who" id="who">Miriam</div><div class="role" id="role">Village elder</div></div><div class="stage-tag" id="stageTag">Mission 1 of 3</div></div>
+        <p class="req" id="req"></p>
+        <div class="goal" id="goal"></div>
+        <div class="done" id="done"><span id="doneText"></span><div class="row" id="doneRow"></div></div>
+      </div>
+      <div class="tabs">
+        <button class="tab on" data-tab="pCode">Code</button>
+        <button class="tab" data-tab="pTools">Tools</button>
+        <button class="tab" data-tab="pSyntax">Syntax desk</button>
+        <button class="tab" data-tab="pMentor">Mentor</button>
+      </div>
+      <div class="pane on" id="pCode">
+        <div class="editor"><div class="gutter" id="gutter">1</div><textarea id="code" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea></div>
+      </div>
+      <div class="pane" id="pTools"><div class="doc" id="toolsDoc"></div></div>
+      <div class="pane" id="pSyntax"><div class="doc" id="syntaxDoc"></div></div>
+      <div class="pane" id="pMentor"><div class="doc" id="mentorDoc"></div></div>
+      <div class="controls">
+        <button class="btn blue" id="runDay" disabled>Loading Python…</button>
+        <button class="btn primary" id="runTest" disabled>Run test</button>
+        <label class="speed">Speed <input type="range" id="speed" min="1" max="5" value="2"></label>
+      </div>
+      <div id="console"></div>
+    </aside>
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="pyodide/pyodide.js"></script>
+<script>
+const RUNTIME = /*RUNTIME*/"";
+
+// ---------- helpers ----------
+function mulberry(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const ri=(r,a,b)=>a+Math.floor(r()*(b-a+1));
+const $=id=>document.getElementById(id);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function store(k,v){try{localStorage.setItem('gt-era1-'+k,JSON.stringify(v))}catch(e){}}
+function recall(k,d){try{const v=localStorage.getItem('gt-era1-'+k);return v==null?d:JSON.parse(v)}catch(e){return d}}
+
+// ---------- stages ----------
+const PATTERN3='WdWddWWdWd';
+const STAGES=[
+ {n:1,houses:5,budget:300,testDays:3,testSeed:1001,
+  who:'Miriam',role:'Village elder',av:'M',avc:'#8d5a97',
+  req:"Our 5 houses carry water from the well every day. Each house needs 2 buckets. Can you make sure nobody goes thirsty?",
+  goal:"Every house happy 3 days in a row, by hand or with code.",
+  day:(r,live)=>({needs:Array(5).fill(2),well:30,wet:false}),
+  tools:['houses','need','deliver','well_left'],
+  hints:["What do you do with your mouse every day? Write the steps in plain words before writing code.",
+         "Make it work for house 0 only. Then ask: how would you repeat exactly that for every house?",
+         "Idea: a loop that goes through the house numbers, 0 up to houses() − 1."]},
+ {n:2,houses:20,budget:600,testDays:5,testSeed:1002,
+  who:'Yossi',role:'Water carrier',av:'Y',avc:'#2a9d8f',
+  req:"We're 20 houses now, and the well only gives 35 buckets a day. Each house needs between 1 and 4. A house is only happy if it gets ALL it needs. One bucket short is still thirsty, and that water is wasted.",
+  goal:"In a 5-day test, make as many houses happy as is possible each day. The day report tells you the best possible.",
+  day:(r)=>{const needs=[];for(let i=0;i<20;i++)needs.push(ri(r,1,4));return{needs,well:35,wet:false}},
+  tools:['houses','need','deliver','well_left'],
+  hints:["Look at the day report: which houses got water but still weren't happy? Where did those buckets go?",
+         "Try it on paper: 10 buckets, and houses that need 4, 1, 3, 1, 2. Which would you serve to make the most people happy?",
+         "Idea: a greedy plan — serve the cheapest houses first. Sorting is locked, but you don't need it: think about how few different need values there are."]},
+ {n:3,houses:40,budget:1500,testDays:10,testSeed:3003,
+  who:'Miriam',role:'Village elder',av:'M',avc:'#8d5a97',
+  req:"40 houses! On wet days the well overflows with 120 buckets. On dry days it gives only 30. Water left in the well dries up overnight. We built a tank that holds 60 buckets — you decide how to use it.",
+  goal:"Average happiness of 85% or more over a 10-day test. Bonus “Engineered” tier: 93% or more.",
+  day:(r,live,idx)=>{const needs=[];for(let i=0;i<40;i++)needs.push(ri(r,1,3));const wet=PATTERN3[idx%PATTERN3.length]==='W';return{needs,well:wet?120:30,wet}},
+  tools:['houses','need','deliver','well_left','tank_level','tank_store','tank_take'],
+  hints:["At the end of a wet day, what happens to the water nobody used?",
+         "Write down 4 days — wet, dry, dry, wet — and track the tank by hand. When should water go in? When should it come out?",
+         "Idea: a buffer. Save the surplus on good days, draw on it on bad days. Then think: is it ever worth saving water even on a dry day?"]}
+];
+const TOOLDOC={
+ houses:["houses()","How many houses the village has. Houses are numbered from 0."],
+ need:["need(h)","How many more buckets house h needs today. 0 means it's happy."],
+ deliver:["deliver(h, n)","Carry n buckets from the well to house h. Returns how many actually arrived — the well can run dry."],
+ well_left:["well_left()","Buckets still in the well today. Whatever is left dries up overnight."],
+ tank_level:["tank_level()","Buckets in the tank right now (it holds 60). The tank keeps water overnight."],
+ tank_store:["tank_store(n)","Move n buckets from the well into the tank. Returns how many fit."],
+ tank_take:["tank_take(n)","Move n buckets from the tank back to the well, ready to deliver today. Returns how many came out."]
+};
+
+// ---------- state ----------
+let S={stage:recall('stage',0),coins:recall('coins',0),liveDay:recall('liveDay',0),tank:recall('tank',0),streak:0,
+  hints:recall('hints',[0,0,0]),cleared:recall('cleared',[]),busy:false};
+let D=null; // current day
+let logLines=[];
+
+function cfg(){return STAGES[S.stage]}
+function newDay(rng,idx){
+  const c=cfg();const d=c.day(rng,true,idx);
+  return{needs:d.needs,got:d.needs.map(()=>0),well:d.well,wet:d.wet,startWell:d.well,events:[],ops:0};
+}
+function liveRng(){return mulberry(9001+S.stage*7919+S.liveDay*131)}
+function startLiveDay(){D=newDay(liveRng(),S.liveDay);ui();world.setDay(D,true)}
+function best(d){ // greedy smallest-first on today's water
+  const s=[...d.needs].sort((a,b)=>a-b);let w=d.startWell+(cfg().n===3?0:0),c=0;for(const x of s){if(w>=x){w-=x;c++}else break}return c}
+
+// town API seen by Python
+const api={
+  houses:()=>D.needs.length,
+  need:h=>Math.max(0,D.needs[h]-D.got[h]),
+  deliver:(h,n)=>{const a=Math.min(n,D.well);D.well-=a;D.got[h]+=a;if(a>0)D.events.push({t:'d',h,a});return a},
+  well_left:()=>D.well,
+  tank_level:()=>S.tank,
+  tank_store:n=>{const a=Math.min(n,D.well,60-S.tank);D.well-=a;S.tank+=a;if(a>0)D.events.push({t:'s',a});return a},
+  tank_take:n=>{const a=Math.min(n,S.tank);S.tank-=a;D.well+=a;if(a>0)D.events.push({t:'k',a});return a},
+  log:s=>out(String(s),'log')
+};
+
+function evaluate(d){
+  let happy=0,wasted=0;
+  d.needs.forEach((x,i)=>{if(d.got[i]>=x){happy++;wasted+=d.got[i]-x}else wasted+=d.got[i]});
+  return{happy,total:d.needs.length,wasted,leftover:d.well,best:cfg().n===2?best(d):null};
+}
+
+// ---------- console ----------
+function out(text,cls='sys'){const c=$('console');const div=document.createElement('div');div.className='l '+cls;div.textContent=text;c.appendChild(div);while(c.children.length>220)c.firstChild.remove();c.scrollTop=c.scrollHeight}
+function errLine(line){renderGutter(line)}
+
+// ---------- ui ----------
+function ui(){
+  const c=cfg();
+  $('sDay').textContent=S.liveDay+1;$('sHouses').textContent=c.houses;
+  const e=D?evaluate(D):{happy:0};$('sHappy').textContent=e.happy+'/'+c.houses;
+  $('sWell').textContent=D?D.well:0;$('sTank').textContent=S.tank;
+  $('cTank').classList.toggle('hide',c.n!==3);
+  $('sBudget').textContent=c.budget;$('sOps').textContent=D?D.ops:0;$('sCoins').textContent=S.coins;
+  $('weather').textContent=D&&c.n===3?(D.wet?'Wet day · well gives 120':'Dry day · well gives 30'):'Sunny day · well gives '+(D?D.startWell:'');
+  store('stage',S.stage);store('coins',S.coins);store('liveDay',S.liveDay);store('tank',S.tank);
+}
+function renderTicket(){
+  const c=cfg();
+  $('who').textContent=c.who;$('role').textContent=c.role;$('av').textContent=c.av;$('av').style.background=c.avc;
+  $('stageTag').textContent='Mission '+c.n+' of 3';$('req').textContent=c.req;
+  $('goal').innerHTML='Goal: '+c.goal+'<span class="prog" id="prog"></span>';
+  $('done').classList.remove('show');
+  $('tip').textContent=c.n===1?"Click a house to carry it one bucket from the well. End the day when you're done.":
+     c.n===2?"You can still click houses by hand… all 20 of them, every day. Or write code.":
+     "Drag to look around. The blue tank by the well keeps water overnight.";
+  renderTools();renderMentor();progress();
+}
+function progress(text){const p=$('prog');if(!p)return;const c=cfg();
+  if(text){p.textContent=text;return}
+  if(c.n===1)p.textContent='Happy days in a row: '+S.streak+' / 3';else p.textContent='Press “Run test” to check your code on fixed test days.'}
+function renderTools(){
+  const c=cfg();let h='<h3>What the village has in 1950</h3><p>These are your only tools. Everything else, you build.</p>';
+  for(const t of c.tools){const [sig,desc]=TOOLDOC[t];const isNew=c.n===3&&t.startsWith('tank');h+=`<div class="fn${isNew?' new':''}"><code>${sig}</code><span>${desc}</span></div>`}
+  h+='<p><b>Your code</b> must define <code>run_day()</code>. The village calls it once each day.</p>';
+  h+=`<p><b>Ops budget:</b> ${c.budget} steps a day. Every line Python runs costs one step. Endless loops run out.</p>`;
+  h+='<p class="locked">Locked until the 1960s: sorted(), .sort(). You\'ll invent sorting yourself first.</p>';
+  $('toolsDoc').innerHTML=h;
+}
+function renderSyntax(){
+  const snips=[
+   ['Variables','total = 0\ntotal = total + 3'],
+   ['Repeat for each number','for h in range(5):   # h = 0, 1, 2, 3, 4\n    print(h)'],
+   ['Decide','if water >= 3:\n    print("enough")\nelif water > 0:\n    print("a little")\nelse:\n    print("none")'],
+   ['Repeat while something is true','while water > 0:\n    water = water - 1'],
+   ['Your own function','def double(x):\n    return x * 2\n\nprint(double(4))   # 8'],
+   ['Lists','todo = []\ntodo.append(7)\nfor item in todo:\n    print(item)'],
+   ['Stop a loop early','for h in range(10):\n    if h == 3:\n        break'],
+   ['Remember between days','day_count = 0          # outside run_day\n\ndef run_day():\n    global day_count\n    day_count = day_count + 1'],
+  ];
+  let h='<h3>Syntax is free</h3><p>How to <i>write</i> something is never the puzzle. Copy anything from here, or ask any AI. The thinking is the part that\'s yours.</p>';
+  for(const [t,s] of snips)h+=`<b>${t}</b><pre class="snip">${s.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</pre>`;
+  $('syntaxDoc').innerHTML=h;
+}
+function renderMentor(){
+  const c=cfg(),used=S.hints[S.stage]||0;
+  const lv=['A question','A smaller version','The name of the idea'];
+  let h='<h3>Mentor</h3><p>I won\'t write code for you. Each hint goes one step further, so only open the next one when you\'re stuck.</p>';
+  for(let i=0;i<3;i++){h+=`<div class="hintcard"><div class="lvl">Hint ${i+1} · ${lv[i]}</div>`+(i<used?`<p>${c.hints[i]}</p>`:(i===used?`<p><button class="btn" onclick="useHint()">Show hint ${i+1}</button></p>`:'<p class="locked">Open hint '+(i)+' first.</p>'))+'</div>'}
+  $('mentorDoc').innerHTML=h;
+}
+window.useHint=function(){S.hints[S.stage]=(S.hints[S.stage]||0)+1;store('hints',S.hints);renderMentor()};
+
+function stageCleared(text,tier){
+  const c=cfg();if(!S.cleared.includes(c.n)){S.cleared.push(c.n);store('cleared',S.cleared)}
+  const d=$('done');d.classList.add('show');
+  const usedH=S.hints[S.stage]||0;
+  $('doneText').innerHTML='<b>Goal reached!</b> '+text+(tier?` <b>Tier: ${tier}</b>.`:'')+(usedH?` (You used ${usedH} hint${usedH>1?'s':''}.)`:'');
+  const row=$('doneRow');row.innerHTML='';
+  if(S.stage<2){const b=document.createElement('button');b.className='btn primary';b.textContent=S.stage===0?'Grow the village → 20 houses':'Grow the village → 40 houses + tank';b.onclick=growVillage;row.appendChild(b);
+    const s=document.createElement('span');s.style.cssText='font-size:13px;color:#77737f;align-self:center';s.textContent='Or keep improving first. The village waits for you.';row.appendChild(s)}
+  else{row.innerHTML='<span style="font-size:13.5px;line-height:1.45">That\'s the end of this test. In the full game the village reaches 80 houses next, and there isn\'t enough water whatever your code does. Your next job: measure where the demand is and decide where to dig the second well.</span>'}
+}
+function growVillage(){
+  if(S.stage>=2)return;S.stage++;S.liveDay=0;S.streak=0;S.tank=0;
+  out('— The village grows to '+cfg().houses+' houses. Your code comes with you. —','ok');
+  world.build(cfg());renderTicket();startLiveDay();
+}
+
+// ---------- editor ----------
+const ta=$('code');
+function renderGutter(errAt){const n=ta.value.split('\n').length;let s='';for(let i=1;i<=n;i++)s+=(i===errAt?'<span class="err">'+i+'</span>':i)+'\n';$('gutter').innerHTML=s}
+ta.addEventListener('input',()=>{renderGutter();store('code',ta.value)});
+ta.addEventListener('scroll',()=>{$('gutter').scrollTop=ta.scrollTop});
+ta.addEventListener('keydown',e=>{
+  if(e.key==='Tab'){e.preventDefault();const s=ta.selectionStart,en=ta.selectionEnd;ta.setRangeText('    ',s,en,'end');ta.dispatchEvent(new Event('input'))}
+  else if(e.key==='Enter'){const s=ta.selectionStart;const before=ta.value.slice(0,s);const line=before.split('\n').pop();let ind=line.match(/^\s*/)[0];if(/:\s*(#.*)?$/.test(line))ind+='    ';e.preventDefault();ta.setRangeText('\n'+ind,s,ta.selectionEnd,'end');ta.dispatchEvent(new Event('input'))}
+});
+const STARTER=`# The village calls run_day() once every day.
+# Your tools are listed in the "Tools" tab.
+# Tip: print() shows things in the box below.
+
+def run_day():
+    print("water in the well:", well_left())
+`;
+ta.value=recall('code',STARTER);renderGutter();
+
+// ---------- tabs ----------
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.pane').forEach(x=>x.classList.remove('on'));b.classList.add('on');$(b.dataset.tab).classList.add('on')});
+
+// ---------- python ----------
+let py=null;
+async function initPython(){
+  try{
+    if(typeof loadPyodide!=='function')throw new Error('the Python loader file did not arrive');
+    const slow=setTimeout(()=>out('Python is still loading (it is about 13 MB the first time)…','sys'),15000);
+    const base=new URL('pyodide/',location.href).href;
+    py=await loadPyodide({indexURL:base,stdLibURL:base+'python_stdlib.wasm'});
+    clearTimeout(slow);
+    py.registerJsModule('town',api);
+    py.runPython(RUNTIME);
+    $('runDay').textContent='Run today';$('runTest').textContent='Run test';
+    if(!S.busy){$('runDay').disabled=false;$('runTest').disabled=false}
+    out('Python is ready. Write run_day() and press “Run today”.','ok');
+  }catch(e){$('runDay').textContent='Python didn\'t load';$('runTest').textContent='—';
+    out('Python could not load: '+(e&&e.message||e)+'. You can still play by hand. Please tell Claude this message.','err')}
+}
+function pyLoad(src){
+  if(/\bsorted\s*\(|\.sort\s*\(/.test(src)){return{ok:false,msg:"sorted() and .sort() are locked in 1950.",hint:"You'll invent sorting yourself in the 1960s. For now, find another way.",line:null}}
+  py.globals.set('_src',src);return JSON.parse(py.runPython(`_load(_src, ${cfg().n}, ${cfg().budget})`))}
+function pyDay(){return JSON.parse(py.runPython('_day()'))}
+function showErr(r){out((r.line?'Line '+r.line+': ':'')+r.msg,'err');if(r.hint)out('  → '+r.hint,'hint');errLine(r.line)}
+
+// run one day of code against D, animate, then end the day
+async function codeDay(label){
+  const r=pyDay();D.ops=r.ops||0;
+  if(!r.ok){showErr(r)}
+  await world.play(D.events,speed());
+  return r.ok;
+}
+function dayReport(e,prefix){
+  let s=`${prefix} ${e.happy}/${e.total} happy`;
+  if(e.best!=null)s+=` (best possible: ${e.best})`;
+  if(e.wasted)s+=` · ${e.wasted} bucket${e.wasted>1?'s':''} wasted`;
+  if(e.leftover)s+=` · ${e.leftover} left in the well dried up`;
+  s+=` · ops ${D.ops}/${cfg().budget}`;
+  const ok=e.happy===e.total||(e.best!=null&&e.happy===e.best);
+  out(s,ok?'ok':'sys');
+}
+function finishLiveDay(manual){
+  const e=evaluate(D);S.coins+=e.happy;
+  dayReport(e,'Day '+(S.liveDay+1)+':');
+  world.endDay(D);
+  if(cfg().n===1){
+    if(e.happy===e.total){S.streak++}else S.streak=0;
+    progress();
+    if(S.streak>=3&&!$('done').classList.contains('show'))stageCleared(manual?'You kept the village going by hand. Now imagine doing that for 20 houses every day…':'Your code kept everyone happy.',null);
+  }
+  S.liveDay++;
+}
+function speed(){return +$('speed').value}
+function lock(b){S.busy=b;['runDay','runTest','endDay'].forEach(id=>$(id).disabled=b||(!py&&id!=='endDay'))}
+
+$('endDay').onclick=async()=>{if(S.busy)return;lock(true);finishLiveDay(true);ui();await sleep(450);startLiveDay();lock(false)};
+$('runDay').onclick=async()=>{
+  if(S.busy||!py)return;lock(true);errLine();
+  const r=pyLoad(ta.value);
+  if(!r.ok){showErr(r);lock(false);return}
+  const ok=await codeDay();ui();
+  finishLiveDay(false);ui();await sleep(500);startLiveDay();lock(false);
+};
+$('runTest').onclick=async()=>{
+  if(S.busy||!py)return;lock(true);errLine();
+  const c=cfg();const r=pyLoad(ta.value);
+  if(!r.ok){showErr(r);lock(false);return}
+  out(`— Test: ${c.testDays} fixed days —`,'sys');
+  const savedTank=S.tank;S.tank=0;const rng=mulberry(c.testSeed);
+  let results=[],failed=false;
+  for(let i=0;i<c.testDays;i++){
+    D=newDay(rng,i);world.setDay(D,true);ui();
+    const ok=await codeDay();ui();
+    const e=evaluate(D);results.push(e);dayReport(e,'Test day '+(i+1)+(c.n===3?(D.wet?' (wet)':' (dry)'):'')+':');
+    world.endDay(D);
+    if(!ok){failed=true;break}
+    await sleep(Math.max(80,500/speed()));
+  }
+  S.tank=savedTank;
+  if(!failed){
+    if(c.n===1){const all=results.every(e=>e.happy===e.total);if(all)stageCleared('Your code kept every house happy.',null);else progress('Test: '+results.filter(e=>e.happy===e.total).length+' of 3 days fully happy.')}
+    if(c.n===2){const hit=results.filter(e=>e.happy===e.best).length;progress(`Test: matched the best possible on ${hit} of ${c.testDays} days.`);if(hit===c.testDays)stageCleared('You made the most houses happy that the water allowed, every day.',null);else out('  → Not the best possible yet on every day. Same water, more happy houses is possible.','hint')}
+    if(c.n===3){const avg=results.reduce((a,e)=>a+e.happy/e.total,0)/results.length;const p=Math.round(avg*1000)/10;progress(`Test average: ${p}% happy (goal 85%, Engineered 93%).`);out(`Average happiness: ${p}%`,avg>=.85?'ok':'hint');if(avg>=.85)stageCleared(`Average happiness ${p}%.`,avg>=.93?'Engineered':'Works');}
+  }
+  await sleep(400);startLiveDay();lock(false);
+};
+
+// ---------- 3D world ----------
+const world=(()=>{
+  const host=$('world');
+  const renderer=new THREE.WebGLRenderer({antialias:true});
+  renderer.setPixelRatio(Math.min(2,window.devicePixelRatio));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  host.prepend(renderer.domElement);
+  const scene=new THREE.Scene();const sky=new THREE.Color(0xcfe8ff);scene.background=sky;scene.fog=new THREE.Fog(0xcfe8ff,60,120);
+  const camera=new THREE.PerspectiveCamera(32,1,0.1,300);
+  scene.add(new THREE.HemisphereLight(0xffffff,0x9c8a6a,0.75));
+  const sun=new THREE.DirectionalLight(0xfff1d6,0.85);sun.position.set(18,30,12);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);
+  Object.assign(sun.shadow.camera,{left:-22,right:22,top:22,bottom:-22,near:1,far:80});scene.add(sun);
+  const mat=c=>new THREE.MeshLambertMaterial({color:c,flatShading:true});
+  const mesh=(g,c,cast=true)=>{const m=new THREE.Mesh(g,mat(c));m.castShadow=cast;m.receiveShadow=true;return m};
+  // island
+  const island=new THREE.Group();scene.add(island);
+  const grass=mesh(new THREE.CylinderGeometry(16,16.5,1.2,12),0x8fd16a,false);grass.position.y=-0.6;island.add(grass);
+  const dirt=mesh(new THREE.CylinderGeometry(16.5,11,4,12),0xb98a5c,false);dirt.position.y=-3.2;island.add(dirt);
+  const r0=mulberry(77);
+  for(let i=0;i<26;i++){const a=r0()*Math.PI*2,rr=14+r0()*1.6;const t=new THREE.Group();const h=1.4+r0()*1.4;const cone=mesh(new THREE.ConeGeometry(0.7+r0()*0.3,h,6),[0x4caf6e,0x3f9b5f,0x5cbf7a][i%3]);cone.position.y=0.5+h/2;const trunk=mesh(new THREE.CylinderGeometry(0.15,0.18,0.6,5),0x8b5e3c);trunk.position.y=0.3;t.add(trunk,cone);t.position.set(Math.cos(a)*rr,0,Math.sin(a)*rr);island.add(t)}
+  for(let i=0;i<14;i++){const a=r0()*Math.PI*2,rr=5+r0()*9;const rock=mesh(new THREE.DodecahedronGeometry(0.25+r0()*0.25,0),0xc9c3b6);rock.position.set(Math.cos(a)*rr,0.1,Math.sin(a)*rr);island.add(rock)}
+  // well
+  const well=new THREE.Group();scene.add(well);
+  const base=mesh(new THREE.CylinderGeometry(1.1,1.25,1,8),0xb7b4c2);base.position.y=0.5;
+  const water=mesh(new THREE.CylinderGeometry(0.85,0.85,0.06,8),0x4aa3ff,false);water.position.y=1.0;
+  const p1=mesh(new THREE.BoxGeometry(0.16,1.6,0.16),0x8b5e3c);p1.position.set(-0.95,1.6,0);const p2=p1.clone();p2.position.x=0.95;
+  const roof=mesh(new THREE.ConeGeometry(1.7,0.9,4),0xe0584e);roof.rotation.y=Math.PI/4;roof.position.y=2.75;
+  well.add(base,water,p1,p2,roof);
+  // tank
+  const tank=new THREE.Group();tank.position.set(2.6,0,-1.2);scene.add(tank);tank.visible=false;
+  for(const [x,z] of [[-.6,-.6],[.6,-.6],[-.6,.6],[.6,.6]]){const l=mesh(new THREE.BoxGeometry(0.14,1.4,0.14),0x8b5e3c);l.position.set(x,0.7,z);tank.add(l)}
+  const shell=new THREE.Mesh(new THREE.CylinderGeometry(0.95,0.95,1.7,8,1,true),new THREE.MeshLambertMaterial({color:0xdfe9f2,flatShading:true,transparent:true,opacity:0.45,side:THREE.DoubleSide}));shell.position.y=2.25;tank.add(shell);
+  const floor=mesh(new THREE.CylinderGeometry(0.95,0.95,0.08,8),0x9aa7b4);floor.position.y=1.4;tank.add(floor);
+  const tWater=mesh(new THREE.CylinderGeometry(0.9,0.9,1,8),0x4aa3ff,false);tWater.position.y=1.45;tank.add(tWater);
+  const tLid=mesh(new THREE.ConeGeometry(1.1,0.5,8),0x3d6e9e);tLid.position.y=3.35;tank.add(tLid);
+  function setTank(v){const f=Math.max(0.001,v/60);tWater.scale.y=f*1.65;tWater.position.y=1.45+f*1.65/2}
+  // rain
+  const rainGeo=new THREE.BufferGeometry();const rn=500;const rp=new Float32Array(rn*3);const rr=mulberry(5);
+  for(let i=0;i<rn;i++){rp[i*3]=(rr()-.5)*34;rp[i*3+1]=rr()*20;rp[i*3+2]=(rr()-.5)*34}
+  rainGeo.setAttribute('position',new THREE.BufferAttribute(rp,3));
+  const rain=new THREE.Points(rainGeo,new THREE.PointsMaterial({color:0x6aa7e8,size:0.18}));rain.visible=false;scene.add(rain);
+  // houses
+  const BODY=[0xffd6a5,0xfdffb6,0xcaffbf,0xffc6ff,0xbdb2ff,0xffadad,0xa0c4ff,0xfff4e0];
+  const ROOF=[0xe76f51,0xd1495b,0x8d5a97,0x2a9d8f,0xe9a23b,0x5b7fd6];
+  let houses=[],pops=[],drops=[];
+  function housePos(i){const a=i*2.39996+0.6,r=4.6+1.32*Math.sqrt(i);return[Math.cos(a)*r,Math.sin(a)*r]}
+  function makeHouse(i){
+    const g=new THREE.Group();const rnd=mulberry(300+i);
+    const w=1.3+rnd()*0.4,h=0.9+rnd()*0.5;
+    const body=mesh(new THREE.BoxGeometry(w,h,w),BODY[i%BODY.length]);body.position.y=h/2;
+    const roofM=mesh(new THREE.ConeGeometry(w*0.86,0.85,4),ROOF[(i*7)%ROOF.length]);roofM.rotation.y=Math.PI/4;roofM.position.y=h+0.42;
+    const door=mesh(new THREE.BoxGeometry(0.32,0.5,0.05),0x6b4a33,false);door.position.set(0,0.25,w/2+0.01);
+    const barG=new THREE.Group();barG.position.y=h+1.25;
+    const barBack=new THREE.Mesh(new THREE.BoxGeometry(1.4,0.26,0.1),new THREE.MeshBasicMaterial({color:0x9b9aa6}));
+    const fillM=new THREE.Mesh(new THREE.BoxGeometry(1.4,0.26,0.12),new THREE.MeshBasicMaterial({color:0x3d8bfd}));fillM.position.z=0.02;fillM.scale.x=0.001;
+    barG.add(barBack,fillM);
+    g.add(body,roofM,door,barG);
+    const [x,z]=housePos(i);g.position.set(x,0,z);g.lookAt(0,0,0);
+    g.userData={i,fill:fillM,back:barBack,barG,barY:h+1.25,shown:0,need:1};
+    g.traverse(o=>{o.userData.house=i});
+    scene.add(g);return g;
+  }
+  function build(c){
+    for(const h of houses)scene.remove(h);houses=[];pops=[];
+    for(let i=0;i<c.houses;i++){const h=makeHouse(i);h.scale.setScalar(0.001);houses.push(h);pops.push({h,t:-i*0.05})}
+    tank.visible=c.n===3;if(c.n===3){tank.scale.setScalar(0.001);pops.push({h:tank,t:-0.3})}
+    camTarget=c.n===1?27:c.n===2?36:46;
+  }
+  function setBar(h){const u=h.userData;const f=Math.min(1,u.shown/Math.max(1,u.need));u.fill.scale.x=Math.max(0.001,f);u.fill.position.x=-(1-f)*0.7;
+    u.fill.material.color.setHex(f>=1?0x2fb36d:0x3d8bfd);}
+  function setDay(d){
+    houses.forEach((h,i)=>{h.userData.need=d.needs[i];h.userData.shown=d.got[i];h.userData.back.material.color.setHex(0x9b9aa6);setBar(h)});
+    const wet=d.wet;rain.visible=wet;sky.setHex(wet?0xb5c4d2:0xcfe8ff);scene.fog.color.copy(sky);
+    setTank(S.tank);
+  }
+  function endDay(d){houses.forEach((h,i)=>{if(d.got[i]<d.needs[i])h.userData.back.material.color.setHex(0xe5534b)})}
+  const dropGeo=new THREE.IcosahedronGeometry(0.22,0),dropMat=new THREE.MeshLambertMaterial({color:0x4aa3ff,flatShading:true});
+  function launch(from,to,delay,dur,onArrive){const m=new THREE.Mesh(dropGeo,dropMat);m.visible=false;scene.add(m);drops.push({m,from,to,t:-delay,dur,onArrive})}
+  const WELL_TOP=new THREE.Vector3(0,1.6,0);
+  function tankTop(){return new THREE.Vector3(tank.position.x,3.2,tank.position.z)}
+  function play(events,spd){
+    return new Promise(res=>{
+      if(!events.length){setDay(D);res();return}
+      if(spd>=5){setDay(D);setTank(S.tank);res();return}
+      const per=Math.min(0.09,1.8/events.length)/spd,dur=0.6/spd;let left=events.length;
+      const done=()=>{if(--left===0)setTimeout(()=>{setTank(S.tank);res()},120)};
+      let tankShown=null;
+      events.forEach((ev,k)=>{
+        if(ev.t==='d'){const h=houses[ev.h];const to=h.position.clone();to.y=h.userData.barY;launch(WELL_TOP,to,k*per,dur,()=>{h.userData.shown+=ev.a;setBar(h);done()})}
+        else if(ev.t==='s'){launch(WELL_TOP,tankTop(),k*per,dur,done)}
+        else{launch(tankTop(),WELL_TOP,k*per,dur,done)}
+      });
+    });
+  }
+  // camera control
+  let az=0.75,camDist=27,camTarget=27,drag=null,moved=0;
+  renderer.domElement.addEventListener('pointerdown',e=>{drag={x:e.clientX,az};moved=0});
+  window.addEventListener('pointermove',e=>{if(drag){moved+=Math.abs(e.movementX||0);az=drag.az-(e.clientX-drag.x)*0.006}});
+  window.addEventListener('pointerup',e=>{if(drag&&moved<6&&e.target===renderer.domElement)click(e);drag=null});
+  renderer.domElement.addEventListener('wheel',e=>{e.preventDefault();camTarget=Math.max(14,Math.min(70,camTarget*(1+e.deltaY*0.001)))},{passive:false});
+  const ray=new THREE.Raycaster(),mv=new THREE.Vector2();
+  function click(e){
+    if(S.busy||!D)return;const r=renderer.domElement.getBoundingClientRect();mv.set(((e.clientX-r.left)/r.width)*2-1,-((e.clientY-r.top)/r.height)*2+1);ray.setFromCamera(mv,camera);
+    const hit=ray.intersectObjects(houses,true)[0];if(!hit)return;const i=hit.object.userData.house;
+    const a=api.deliver(i,1);D.events=[];if(!a){out('The well is empty for today.','hint');return}
+    const h=houses[i];const to=h.position.clone();to.y=h.userData.barY;launch(WELL_TOP,to,0,0.45,()=>{h.userData.shown+=1;setBar(h)});ui();
+  }
+  function resize(){const w=host.clientWidth,h=host.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}
+  window.addEventListener('resize',resize);
+  let last=performance.now();
+  const easeBack=t=>{const c1=1.70158,c3=c1+1;return 1+c3*Math.pow(t-1,3)+c1*Math.pow(t-1,2)};
+  function frame(now){
+    const dt=Math.min(0.05,(now-last)/1000);last=now;
+    camDist+=(camTarget-camDist)*Math.min(1,dt*3);
+    camera.position.set(Math.cos(az)*camDist,camDist*0.82,Math.sin(az)*camDist);camera.lookAt(0,0.5,0);
+    for(const p of pops){if(p.t<1){p.t+=dt*2.2;const t=Math.max(0,Math.min(1,p.t));p.h.scale.setScalar(Math.max(0.001,easeBack(t)))}}
+    for(let k=drops.length-1;k>=0;k--){const d=drops[k];d.t+=dt;if(d.t<0)continue;d.m.visible=true;const t=Math.min(1,d.t/d.dur);
+      d.m.position.lerpVectors(d.from,d.to,t);d.m.position.y+=Math.sin(t*Math.PI)*(2+d.from.distanceTo(d.to)*0.15);
+      if(t>=1){scene.remove(d.m);drops.splice(k,1);d.onArrive&&d.onArrive()}}
+    if(rain.visible){const a=rainGeo.attributes.position.array;for(let i=0;i<rn;i++){a[i*3+1]-=dt*14;if(a[i*3+1]<0)a[i*3+1]=20}rainGeo.attributes.position.needsUpdate=true}
+    for(const h of houses){h.userData.barG.quaternion.copy(h.quaternion).invert().multiply(camera.quaternion)}
+    water.position.y=1.0+Math.sin(now/600)*0.02;
+    renderer.render(scene,camera);requestAnimationFrame(frame);
+  }
+  resize();requestAnimationFrame(frame);
+  return{build,setDay,endDay,play};
+})();
+
+$('reset').onclick=()=>{if(S.busy)return;if($('reset').dataset.sure!=='1'){$('reset').dataset.sure='1';$('reset').textContent='Sure? Click again';setTimeout(()=>{$('reset').dataset.sure='';$('reset').textContent='Start over'},2500);return}
+  $('reset').dataset.sure='';$('reset').textContent='Start over';
+  Object.assign(S,{stage:0,coins:0,liveDay:0,tank:0,streak:0,hints:[0,0,0],cleared:[]});store('hints',S.hints);store('cleared',[]);
+  ta.value=STARTER;store('code',STARTER);renderGutter();$('console').innerHTML='';out('Fresh start. Back to 5 houses.','sys');
+  world.build(cfg());renderTicket();startLiveDay();};
+
+// ---------- boot ----------
+renderSyntax();world.build(cfg());renderTicket();startLiveDay();
+if(S.cleared.includes(cfg().n))stageCleared('You already cleared this mission.',null);
+$('loading').remove();
+lock(true);$('endDay').disabled=false;S.busy=false;
+out('Welcome to 1950. Python is loading…','sys');
+initPython();
+</script>
+</body>
+</html>

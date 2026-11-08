@@ -1,0 +1,18 @@
+[package]
+name = "ground-truth"
+version = "0.1.0"
+description = "A low-poly town that runs on the Python you write"
+edition = "2024"
+rust-version = "1.90"
+
+[lib]
+name = "ground_truth_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.7.4", features = [] }
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tauri = { version = "2.12.5", features = [] }
