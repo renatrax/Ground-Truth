@@ -2,6 +2,22 @@
 
 A low-poly 3D town builder where the town runs on Python you write. From a 1950s village to a 2020s smart city.
 
+A desktop game for Windows, macOS and Linux.
+
+## Running it
+
+You need [Node 22+](https://nodejs.org), [pnpm](https://pnpm.io), [Rust](https://rustup.rs), and the [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/) for your OS.
+
+```bash
+pnpm install
+```
+
+```bash
+pnpm desktop:dev
+```
+
+Or download a ready-built installer: open the latest CI run under the repository's **Actions** tab and grab the `ground-truth-<your OS>` artifact.
+
 ## Starting the build with Claude Code
 
 1. Create an empty folder (or GitHub repo) and copy everything in this package into it.

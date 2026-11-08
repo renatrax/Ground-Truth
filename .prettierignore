@@ -4,3 +4,5 @@ reference
 pnpm-lock.yaml
 docs
 *.md
+src-tauri/target
+src-tauri/gen

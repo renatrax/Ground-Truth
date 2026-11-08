@@ -79,7 +79,7 @@ Era 1 is specified in `05-era1-missions.md`. Later eras get their own spec when 
 
 ## Decided
 
-- Platform: web app.
+- Platform: desktop app (Windows, macOS, Linux) via Tauri. Decided 2026-11-08: writing code on a phone isn't realistic, so no mobile version for now.
 - Look: low-poly 3D, Egg Inc.-style diorama.
 - Players: Shmuly first; saves designed so accounts and cloud saves can be added later.
 - Language: English UI; Python code.

@@ -44,7 +44,12 @@ self.onmessage = (e: MessageEvent<MainToWorker>) => {
         const value: unknown = pyodide.runPython(msg.code);
         post({ type: 'evalResult', id: msg.id, ok: true, value: String(value) });
       } catch (err) {
-        post({ type: 'evalResult', id: msg.id, ok: false, error: err instanceof Error ? err.message : String(err) });
+        post({
+          type: 'evalResult',
+          id: msg.id,
+          ok: false,
+          error: err instanceof Error ? err.message : String(err),
+        });
       }
       break;
     }

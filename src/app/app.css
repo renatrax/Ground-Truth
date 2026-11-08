@@ -8,7 +8,11 @@
   --error: #b5483b;
   --console-bg: #23211e;
   --console-ink: #e8e2d6;
-  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
   color: var(--ink);
   background: var(--bg);
 }

@@ -53,7 +53,13 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
-function EngineLine({ status, smoke }: { status: ReturnType<typeof useEngine>['status']; smoke: string | null }) {
+function EngineLine({
+  status,
+  smoke,
+}: {
+  status: ReturnType<typeof useEngine>['status'];
+  smoke: string | null;
+}) {
   if (status.kind === 'failed') {
     return (
       <p className="log log-error" data-testid="engine-status">

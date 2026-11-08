@@ -4,7 +4,7 @@ A mission is a teaching tool, so it can be "broken" in ways a normal feature can
 
 ## Balance harness (`tests/balance/`)
 
-- Runs in Node with the `pyodide` npm package and the same `sandbox.py` and sim kernel as the browser. No browser needed.
+- Runs in Node with the `pyodide` npm package and the same `sandbox.py` and sim kernel as the app. No app or browser needed.
 - For every mission, loads each reference solution from `tests/solutions/<mission-id>/` and runs the mission's **visible and hidden** test seeds.
 - Asserts each solution lands exactly in its expected tier.
 
@@ -43,7 +43,7 @@ The harness parses these headers, so adding a case is just adding a file.
 Run in Node with Pyodide:
 
 - Endless loop → `OutOfOps` with the right line.
-- Expensive builtin → stopped by the watchdog (browser-only, in e2e).
+- Expensive builtin → stopped by the watchdog (needs a real worker, so it runs in e2e).
 - Locked built-in → `LockedError` with the unlock message; `.sort(` static check.
 - Import hook: player file import works; `import os` refused with a friendly message; unlocked module allowed.
 - Memory meter: counts match hand-computed values for lists, nested lists, globals.
@@ -57,7 +57,11 @@ Run in Node with Pyodide:
 - Manual click on a house delivers a bucket.
 - Endless-loop code doesn't freeze the page.
 
-Note: CI must serve Pyodide from `public/pyodide/` (no CDN), same as production.
+Note: e2e runs the frontend build in Chromium and must load Pyodide from `public/pyodide/` (no CDN), same as the app.
+
+## Desktop smoke test
+
+`pnpm desktop:smoke` runs the built app with `GT_SMOKE=1` and passes if Python loads inside the app and answers `2 + 2`. CI runs it on Windows, macOS and Linux, because each OS uses a different webview. Before a release, also play through mission 1 by hand on each OS.
 
 ## Playtesting
 

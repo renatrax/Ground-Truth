@@ -15,8 +15,9 @@ export class EngineClient {
   constructor(private onStatus: (s: EngineStatus) => void) {
     this.worker = new Worker(new URL('../worker/engine.worker.ts', import.meta.url), { type: 'module' });
     this.worker.onmessage = (e: MessageEvent<WorkerToMain>) => this.handle(e.data);
-    this.worker.onerror = (e) => this.onStatus({ kind: 'failed', reason: e.message || 'The engine worker crashed.' });
-    this.send({ type: 'init', pyodideBase: pyodideBaseUrl(import.meta.env.BASE_URL, location.origin) });
+    this.worker.onerror = (e) =>
+      this.onStatus({ kind: 'failed', reason: e.message || 'The engine worker crashed.' });
+    this.send({ type: 'init', pyodideBase: pyodideBaseUrl(import.meta.env.BASE_URL, location.href) });
   }
 
   eval(code: string): Promise<string> {

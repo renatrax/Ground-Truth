@@ -17,7 +17,7 @@
 ## Problems found (fixed in the prototype, design them out)
 
 - **Pyodide from a CDN failed** inside a sandboxed host: the loader script came through, but its runtime fetches (wasm, stdlib) were blocked, and the Run buttons stayed silently disabled. → Self-host Pyodide, and show a clear loading state and a clear failure message. Let the player play by hand while Python loads.
-- **Some hosts refuse `.zip` files.** The stdlib can be renamed and passed via `loadPyodide({ stdLibURL })`. Vercel doesn't have this problem, but keep the option in mind.
+- **Some hosts refuse `.zip` files.** The stdlib can be renamed and passed via `loadPyodide({ stdLibURL })`. The desktop app serves files itself, so this shouldn't matter, but keep the option in mind.
 - **Status bars rotated with their house** and went edge-on. → Billboard UI elements to face the camera.
 - **First-mission camera was too close.** → Frame the whole island for each town size.
 

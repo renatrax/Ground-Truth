@@ -2,13 +2,15 @@
 
 ## The big picture
 
+Ground Truth ships as a Tauri 2 desktop app. The whole game is a web frontend that runs inside the system webview; `src-tauri/` (Rust) only opens the window, saves files, and hosts the smoke-test hooks. Everything below runs inside that webview.
+
 ```
  Main thread                                   Engine worker (Web Worker)
  ┌───────────────────────────┐   messages    ┌──────────────────────────────────┐
  │ React UI (panels, editor) │ ───────────▶  │ Simulation kernel (TS, pure)     │
  │ Zustand store             │               │ Pyodide + sandbox.py             │
  │ Town renderer (r3f)       │ ◀───────────  │ Primitive registry (TS + Python) │
- │ Save system (IndexedDB)   │  DayResult    │ Mission runtime                  │
+ │ Save system (files)       │  DayResult    │ Mission runtime                  │
  │ Watchdog                  │  (events,     └──────────────────────────────────┘
  └───────────────────────────┘   metrics)
 ```
@@ -88,14 +90,14 @@ The worker processes one message at a time. The watchdog runs on the main thread
 - Procedural low-poly geometry first (as in the prototype). A `BuildingKit` maps building type + tier + era → geometry/material, so glTF models can replace procedural ones later without touching game code.
 - **Event playback:** `DayResult.events` are animated (bucket droplets, card reader flashes) with a speed setting; speed max = apply instantly. The renderer keeps "shown" values separate from true state and catches up as animations land.
 - Billboarded status bars and icons; pop-in animation for new buildings; camera orbit and zoom; click picking for manual actions and building inspection.
-- Target: 60 fps with 500 buildings on a mid laptop.
+- Target: 60 fps with 500 buildings on a mid laptop, in all three webviews (WebView2, WKWebView, WebKitGTK). WebKitGTK on Linux is usually the slowest; test there.
 
 ## UI (`src/app/`, `src/editor/`)
 
 - Layout: header stats → 3D town (left) → right panel (ticket, tabs: Code / Tools / Syntax / Mentor / Journal, run controls, console).
 - Editor: CodeMirror 6, Python mode, file tabs, error line markers, completions from the primitive registry, Tab = 4 spaces, auto-indent after `:`.
 - Console: logs, day reports, errors with hints; capped length.
-- Responsive down to a laptop screen; mobile is view-only for now.
+- Desktop only. Minimum window 1024×640; the layout must work from there up to large monitors.
 
 ## Saves (`src/engine/save/`)
 
@@ -109,7 +111,8 @@ interface SaveRepository {
 }
 ```
 
-- Now: `IndexedDbSaveRepository` (via `idb-keyval`). Autosave after each day and on code edits (debounced).
+- Now: `FileSaveRepository`: JSON files in the app data folder, written by small Tauri commands (write to a temp file, then rename, so a crash never leaves a half-written save). `IndexedDbSaveRepository` (via `idb-keyval`) only for the plain-browser dev mode. Autosave after each day and on code edits (debounced).
+- Export/import uses the native save/open dialogs.
 - Later: `CloudSaveRepository` (e.g. Supabase) behind the same interface + accounts.
 - `SaveFile` = `{ version, profile, simState, files, journal, missions: {bestTier, metrics, hintsUsed}, unlocks, settings }`. Every schema change adds a migration in `src/engine/save/migrations.ts`.
 
@@ -144,17 +147,18 @@ defineMission({
 });
 ```
 
-## Hosting and Pyodide
+## Packaging and Pyodide
 
-- Copy Pyodide's core files from `node_modules/pyodide` into `public/pyodide/` at build (`scripts/copy-pyodide.ts`). Load with `loadPyodide({ indexURL: '/pyodide/' })`. Never fetch from a CDN at runtime: sandboxed hosts block it, and offline play should work.
-- Vercel static deploy. Long cache headers for `/pyodide/*`.
-- First load is ~13 MB; show a progress state and let the player play by hand meanwhile.
+- Copy Pyodide's core files from `node_modules/pyodide` into `public/pyodide/` at build (`scripts/copy-pyodide.ts`). Vite copies them into `dist/`, and Tauri bundles `dist/` into the app. The worker imports `pyodide.mjs` from that folder and loads with `loadPyodide({ indexURL })`, where the URL is resolved against the page URL (`src/engine/pyodideBase.ts`): the app is served from `tauri://localhost` on macOS/Linux and `http://tauri.localhost` on Windows. Never fetch Python from the network.
+- The content-security policy in `src-tauri/tauri.conf.json` allows only the app's own files plus `'wasm-unsafe-eval'` for WebAssembly. Don't loosen it without a reason.
+- Pyodide adds ~13 MB to the installer; startup reads it from disk. Show a progress state and let the player play by hand while it loads.
+- `GT_SMOKE=1` makes the app load Python, evaluate `2 + 2`, print `GT_SMOKE PASS|FAIL …` and exit. CI runs this on all three platforms.
 
 ## Performance budgets
 
 | Thing | Budget |
 | --- | --- |
 | Sim day, excluding player code | < 20 ms at Era 1 sizes |
-| Worker startup (cached) | < 3 s |
+| Worker startup (Python ready after app launch) | < 3 s |
 | Render | 60 fps, 500 buildings |
 | Idle fast-forward | 30 days < 2 s at Era 1 sizes |

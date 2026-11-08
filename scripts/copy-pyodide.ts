@@ -28,7 +28,11 @@ for (const file of PYODIDE_FILES) {
     throw new Error(`Pyodide file missing from node_modules: ${file}`);
   }
   // Skip files that are already up to date.
-  if (existsSync(to) && statSync(to).size === statSync(from).size && statSync(to).mtimeMs >= statSync(from).mtimeMs) {
+  if (
+    existsSync(to) &&
+    statSync(to).size === statSync(from).size &&
+    statSync(to).mtimeMs >= statSync(from).mtimeMs
+  ) {
     continue;
   }
   copyFileSync(from, to);

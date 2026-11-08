@@ -5,10 +5,10 @@ Each milestone ends with something Shmuly can run and judge. Don't start a miles
 ## M0 — Project skeleton
 
 - Vite + React + TS strict, pnpm, ESLint + Prettier, Vitest, Playwright, GitHub Actions (lint, typecheck, test).
-- `scripts/copy-pyodide.ts`; Pyodide served from `/pyodide/`.
-- Vercel project connected; preview deploy per branch.
+- `scripts/copy-pyodide.ts`; Pyodide bundled into the app from `/pyodide/`.
+- Tauri 2 desktop shell; CI builds installers for Windows, macOS and Linux and runs the desktop smoke test on each.
 
-**Done when:** `pnpm dev` shows an empty layout; CI is green; a deployed preview loads Pyodide from its own origin and prints `2 + 2` from a worker.
+**Done when:** `pnpm desktop:dev` opens the app with an empty layout; CI is green; the built app on each OS loads Python from inside itself and prints `2 + 2 = 4` from a worker.
 
 ## M1 — Engine core (no 3D, no polish)
 
@@ -26,7 +26,7 @@ Each milestone ends with something Shmuly can run and judge. Don't start a miles
 - Layout, header stats, ticket panel, tabs (Code / Tools / Syntax / Mentor / Journal stub), console.
 - CodeMirror editor with file tabs (create/rename/delete files), error markers, completions.
 - Run today / Run test / speed; test summary card with tier.
-- Save system (IndexedDB), autosave, export/import JSON, "Start over".
+- Save system (files in the app data folder), autosave, export/import JSON with native dialogs, "Start over".
 
 **Done when:** a player can write code in two files that import each other, run mission 1 live and in test mode, reload the page, and find everything as they left it.
 
@@ -66,6 +66,7 @@ Each milestone ends with something Shmuly can run and judge. Don't start a miles
 - Performance pass against the budgets in `02-architecture.md`.
 - Playtest with someone who isn't Shmuly; fix the top 5 confusions.
 - Error message review: every common mistake gets a clear hint.
+- Release: app icon, code signing (Windows) and signing + notarization (macOS, needs an Apple Developer account), auto-updater, a downloads page (GitHub Releases or itch.io; Steam is an option to decide then).
 
 **Done when:** a new player finishes mission 3 without outside help, and Shmuly signs off on Era 1.
 
@@ -73,5 +74,6 @@ Each milestone ends with something Shmuly can run and judge. Don't start a miles
 
 - Era 2 spec and build (sorting on tape, binary search, messy specs, shared library).
 - Accounts + cloud saves (`CloudSaveRepository`).
+- Mobile/tablet: only if there is a good answer to writing code on a touch screen.
 - AI mentor that reads code and asks questions (behind the existing Mentor interface; needs a small backend).
 - Endless mode, leaderboards against your own past solutions.
