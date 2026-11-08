@@ -53,9 +53,18 @@ pnpm balance        # run every mission's reference solutions headless and check
 pnpm e2e            # playwright tests against the frontend build
 pnpm build          # frontend production build (copies Pyodide into dist/pyodide)
 pnpm lint && pnpm typecheck && pnpm format:check
+pnpm check          # everything above except the desktop app: lint, format, typecheck, unit, e2e
+pnpm check:desktop  # build the desktop binary and run the smoke test (uses xvfb on Linux without a display)
 ```
 
 Keep these working. If you add a script, document it here.
+
+## Testing happens locally, not on GitHub
+
+GitHub Actions minutes are limited. **All tests run locally while developing.** Before every commit, run `pnpm check`, plus `pnpm check:desktop` when anything in `src-tauri/`, the worker, or Pyodide loading changed. Report the results honestly.
+
+- The CI workflow (`.github/workflows/ci.yml`) is manual-only (`workflow_dispatch`). Never change it to run on push or pull requests, and never trigger it (no `gh workflow run`) unless the person you are working with asks.
+- Windows and macOS installers can't be built on Linux. They are built by running CI by hand, only when a release or cross-platform check is actually wanted.
 
 ## Where things are
 

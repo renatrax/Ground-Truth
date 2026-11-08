@@ -16,7 +16,7 @@ pnpm install
 pnpm desktop:dev
 ```
 
-Or download a ready-built installer: open the latest CI run under the repository's **Actions** tab and grab the `ground-truth-<your OS>` artifact.
+Installers for Windows, macOS and Linux come from the CI workflow, which only runs when started by hand (Actions tab → CI → Run workflow) to save GitHub Actions minutes. All tests run locally: `pnpm check` and `pnpm check:desktop`.
 
 ## Starting the build with Claude Code
 

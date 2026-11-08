@@ -24,7 +24,9 @@
     "tauri": "tauri",
     "desktop:dev": "tauri dev",
     "desktop:build": "tauri build",
-    "desktop:smoke": "tsx scripts/desktop-smoke.ts"
+    "desktop:smoke": "tsx scripts/desktop-smoke.ts",
+    "check": "pnpm lint && pnpm format:check && pnpm copy-pyodide && pnpm typecheck && pnpm test && pnpm e2e",
+    "check:desktop": "pnpm desktop:build --no-bundle && node scripts/run-smoke.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.12.4",

@@ -1,9 +1,9 @@
 name: CI
 
+# Manual only, to save GitHub Actions minutes (macOS runners cost 10x, Windows 2x).
+# All checks run locally during development: `pnpm check` and `pnpm check:desktop`.
+# Run this by hand from the Actions tab only when Windows/macOS installers are needed.
 on:
-  push:
-    branches: [main]
-  pull_request:
   workflow_dispatch:
 
 jobs:
